@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 public class Request {
 
+    private String requestId;
     private String jobOfferId;
     private Company company;
     private String description;
@@ -18,8 +19,9 @@ public class Request {
     private LocalDate dateStatus;
 
 
-    public Request(String jobOfferId, Company company, String description, CTTCompaniesJobs.Qualification minQualification,
+    public Request(String requestId, String jobOfferId, Company company, String description, CTTCompaniesJobs.Qualification minQualification,
                    int maxWorkers, LocalDate startDate, LocalDate endDate) {
+        this.requestId = requestId;
         this.jobOfferId = jobOfferId;
         this.company = company;
         this.description = description;

@@ -45,7 +45,7 @@ public class CTTCompaniesJobsPR1Test {
         Assert.assertEquals("Robert", worker1000.getName());
         Assert.assertEquals("López", worker1000.getSurname());
         Assert.assertEquals(createLocalDate("22-01-1992"), worker1000.getDateOfBirth());
-        Assert.assertEquals(CTTCompaniesJobs.Qualification.MASTER, worker1000.getLevel());
+        Assert.assertEquals(CTTCompaniesJobs.Qualification.MASTER, worker1000.getQualification());
 
         Assert.assertEquals(11, this.cttCompaniesJobs.numWorkers());
 
@@ -54,7 +54,7 @@ public class CTTCompaniesJobsPR1Test {
         Assert.assertEquals("XXXX", worker999.getName());
         Assert.assertEquals("YYYY", worker999.getSurname());
         Assert.assertEquals(createLocalDate("27-12-1967"), worker999.getDateOfBirth());
-        Assert.assertEquals(CTTCompaniesJobs.Qualification.HIGH_SCHOOL, worker999.getLevel());
+        Assert.assertEquals(CTTCompaniesJobs.Qualification.HIGH_SCHOOL, worker999.getQualification());
 
         Assert.assertEquals(12, this.cttCompaniesJobs.numWorkers());
 
@@ -63,7 +63,7 @@ public class CTTCompaniesJobsPR1Test {
         Assert.assertEquals("Josep", worker999.getName());
         Assert.assertEquals("Ràmia", worker999.getSurname());
         Assert.assertEquals(createLocalDate("21-12-1968"), worker999.getDateOfBirth());
-        Assert.assertEquals(CTTCompaniesJobs.Qualification.DOCTORATE, worker999.getLevel());
+        Assert.assertEquals(CTTCompaniesJobs.Qualification.DOCTORATE, worker999.getQualification());
 
         Assert.assertEquals(12, this.cttCompaniesJobs.numWorkers());
 
@@ -173,7 +173,7 @@ public class CTTCompaniesJobsPR1Test {
                 cttCompaniesJobs.signUpJobOffer("workerIdXXX", "jobOfferIdA1"));
 
         Worker workerId1 = cttCompaniesJobs.getWorker("workerId1");
-        Assert.assertEquals(CTTCompaniesJobs.Qualification.DOCTORATE, workerId1.getLevel());
+        Assert.assertEquals(CTTCompaniesJobs.Qualification.DOCTORATE, workerId1.getQualification());
 
         JobOffer jobOfferIA1 = cttCompaniesJobs.getJobOffer("jobOfferIdA1");
         Assert.assertEquals(CTTCompaniesJobs.Qualification.DOCTORATE, jobOfferIA1.getMinQualification());
@@ -183,10 +183,10 @@ public class CTTCompaniesJobsPR1Test {
         Assert.assertEquals(1, jobOfferIA1.getNumWorkers());
 
         Assert.assertThrows(WorkerAlreadyEnrolledException.class, () ->
-            cttCompaniesJobs.signUpJobOffer("workerId1", "jobOfferIdA1"));
+                cttCompaniesJobs.signUpJobOffer("workerId1", "jobOfferIdA1"));
 
         Worker workerId2 = cttCompaniesJobs.getWorker("workerId2");
-        Assert.assertEquals(CTTCompaniesJobs.Qualification.UNIVERSITY, workerId2.getLevel());
+        Assert.assertEquals(CTTCompaniesJobs.Qualification.UNIVERSITY, workerId2.getQualification());
 
         CTTCompaniesJobs.Response response2 = cttCompaniesJobs.signUpJobOffer("workerId2", "jobOfferIdA1");
         Assert.assertEquals(CTTCompaniesJobs.Response.REJECTED, response2);
@@ -228,7 +228,7 @@ public class CTTCompaniesJobsPR1Test {
         Assert.assertEquals(1, jobOfferIA1.getNumSubstitutes());
 
         Assert.assertThrows(WorkerAlreadyEnrolledException.class, () ->
-                 cttCompaniesJobs.signUpJobOffer("workerId9", "jobOfferIdA1"));
+                cttCompaniesJobs.signUpJobOffer("workerId9", "jobOfferIdA1"));
 
         CTTCompaniesJobs.Response response11 = cttCompaniesJobs.signUpJobOffer("workerId10", "jobOfferIdA1");
         Assert.assertEquals(CTTCompaniesJobs.Response.SUBSTITUTE, response11);

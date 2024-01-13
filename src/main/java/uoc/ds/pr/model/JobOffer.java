@@ -13,7 +13,8 @@ import java.util.Comparator;
 import static java.time.temporal.ChronoUnit.DAYS;
 
 public class JobOffer implements Comparable<JobOffer>  {
-    public static final Comparator<JobOffer> CMP_V = (jo1, jo2)->Double.compare(jo1.rating(), jo2.rating());
+    public static final Comparator<JobOffer> CMP_V = Comparator.comparingDouble(JobOffer::rating);
+    public static final Comparator<JobOffer> CMP_J = Comparator.comparing(JobOffer::getJobOfferId);
 
     private String jobOfferId;
     private Request request;
@@ -43,6 +44,10 @@ public class JobOffer implements Comparable<JobOffer>  {
         this.enrollments = new QueueLinkedList<>();
         this.substitutes = new QueueLinkedList<>();
         this.ratings = new LinkedList<>();
+    }
+
+    public JobOffer(String jobOfferId) {
+        this.jobOfferId = jobOfferId;
     }
 
     public String getJobOfferId() {
@@ -83,7 +88,7 @@ public class JobOffer implements Comparable<JobOffer>  {
     }
 
     public boolean workerHasMinimumQualification(Worker worker) {
-        return worker.getLevel().getValue() >= this.minQualification.getValue();
+        return worker.getQualification().getValue() >= this.minQualification.getValue();
     }
 
     public LocalDate getStartDate() {

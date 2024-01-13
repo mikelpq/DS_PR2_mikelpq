@@ -1,20 +1,29 @@
 package uoc.ds.pr.model;
 
+import edu.uoc.ds.adt.sequential.LinkedList;
+import edu.uoc.ds.traversal.Iterator;
+
 import java.time.LocalDate;
 
 public class Employee {
 
-    private String id;
+    private final String employeeId;
     private String name;
     private String surname;
     private LocalDate dateOfBirth;
+    private String role;
+    private final LinkedList<Room> rooms = new LinkedList<>();
 
-    public String getEmployeeId() {
-        return id;
+    public Employee(String employeeId, String name, String surname, LocalDate localDate, String role) {
+        this.employeeId = employeeId;
+        this.name = name;
+        this.surname = surname;
+        this.dateOfBirth = localDate;
+        this.role = role;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getEmployeeId() {
+        return employeeId;
     }
 
     public String getName() {
@@ -39,5 +48,42 @@ public class Employee {
 
     public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getRole(){
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public LinkedList<Room> getRooms() {
+        return rooms;
+    }
+
+    public void update(String name, String surname, LocalDate date, String role) {
+        setName(name);
+        setSurname(surname);
+        setDateOfBirth(date);
+        setRole(role);
+    }
+
+    public void addRoom(Room room){
+        this.rooms.insertEnd(room);
+    }
+
+    public boolean isAssignedToRoom(Room room) {
+        Iterator<Room> iterator = this.rooms.values();
+        boolean isAssigned = false;
+
+        while (iterator.hasNext()) {
+            if (iterator.next().getRoomId().equals(room.getRoomId())) {
+                isAssigned = true;
+                break;
+            }
+        }
+
+        return isAssigned;
     }
 }

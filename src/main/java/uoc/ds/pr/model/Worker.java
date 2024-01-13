@@ -4,18 +4,23 @@ import edu.uoc.ds.adt.sequential.LinkedList;
 import edu.uoc.ds.adt.sequential.List;
 import edu.uoc.ds.traversal.Iterator;
 import uoc.ds.pr.CTTCompaniesJobs;
+import uoc.ds.pr.CTTCompaniesJobsPR2;
+import uoc.ds.pr.util.LevelHelper;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 
 public class Worker {
 
+    public static final Comparator<Worker> CMP_W = Comparator.comparing(Worker::getId);
     private String id;
     private String name;
     private String surname;
     private LocalDate dateOfBirth;
-    private CTTCompaniesJobs.Qualification level;
+    private CTTCompaniesJobs.Qualification qualification;
     private List<JobOffer> jobOffers;
     private int workingDays;
+    private CTTCompaniesJobsPR2.Level level;
 
 
     public Worker(String id, String name, String surname,
@@ -24,22 +29,20 @@ public class Worker {
         this.setName(name);
         this.setSurname(surname);
         this.setDateOfBirth(dateOfBirth);
-        this.setLevel(qualification);
+        this.setQualification(qualification);
         this.jobOffers = new LinkedList<>();
         this.workingDays = 0;
     }
 
+    public Worker(String id) {
+        this.id = id;
+    }
 
-    public void update(String name, String surname,
-                       LocalDate dateOfBirth, CTTCompaniesJobs.Qualification qualification) {
+    public void update(String name, String surname, LocalDate dateOfBirth, CTTCompaniesJobs.Qualification qualification) {
         this.setName(name);
         this.setSurname(surname);
         this.setDateOfBirth(dateOfBirth);
-        this.setLevel(qualification);
-    }
-
-    private void setLevel(CTTCompaniesJobs.Qualification level) {
-        this.level = level;
+        this.setQualification(qualification);
     }
 
     public void setId(String id) {
@@ -74,13 +77,16 @@ public class Worker {
         return dateOfBirth;
     }
 
-    public CTTCompaniesJobs.Qualification getLevel() {
-        return level;
+    public CTTCompaniesJobs.Qualification getQualification() {
+        return qualification;
     }
 
+    public void setQualification(CTTCompaniesJobs.Qualification qualification) {
+        this.qualification = qualification;
+    }
 
     public void addJobOffer(JobOffer jobOffer) {
-        this.workingDays+=jobOffer.getWorkingDays();
+        this.workingDays += jobOffer.getWorkingDays();
         this.jobOffers.insertEnd(jobOffer);
     }
 
@@ -98,8 +104,6 @@ public class Worker {
         return isInJobOffer(it);
     }
 
-
-
     public boolean isInJobOffer(Iterator<Enrollment> it){
         boolean found = false;
 
@@ -115,4 +119,7 @@ public class Worker {
         return this.workingDays;
     }
 
+    public CTTCompaniesJobsPR2.Level getLevel() {
+        return LevelHelper.getLevel(this.workingDays * 8);
+    }
 }
