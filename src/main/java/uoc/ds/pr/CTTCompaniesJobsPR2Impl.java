@@ -2,6 +2,7 @@ package uoc.ds.pr;
 
 import edu.uoc.ds.adt.nonlinear.AVLTree;
 import edu.uoc.ds.adt.nonlinear.HashTable;
+import edu.uoc.ds.adt.sequential.LinkedList;
 import edu.uoc.ds.adt.sequential.Queue;
 import edu.uoc.ds.traversal.Iterator;
 import uoc.ds.pr.exceptions.*;
@@ -24,7 +25,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
     private Worker mostActiveWorker;
     private final OrderedVector<JobOffer> bestJobOffer = new OrderedVector<>(MAX_NUM_JOBOFFERS, JobOffer.CMP_V);
     private final OrderedVector<Room> mostEquippedRooms = new OrderedVector<>(5, Room.CMP_R);
-
+    private LinkedList<Room> roomsWithoutEmployees = new LinkedList<>();
 
     @Override
     public void addWorker(String id, String name, String surname, LocalDate dateOfBirth, Qualification qualification) {
@@ -118,7 +119,6 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             }
         }
         else {
-            // Rejected
             response = Response.REJECTED;
         }
         return response;
@@ -283,18 +283,18 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
     public void addEmployee(String employeeId, String name, String surname, LocalDate localDate, String role) {
         final Employee employee = new Employee(employeeId, name, surname, localDate, role);
         final Employee foundEmployee = getEmployee(employeeId);
-        final Role foundRole = getRole(role);
 
-        this.employees.put(employeeId, employee);
-
-        if(foundEmployee != null && !foundEmployee.getRole().equals(employee.getRole())) {
-            this.roles.get(role).removeEmployee(employee);
-        }
-        if(foundRole != null) {
-            this.roles.get(role).addEmployee(employee);
-        }
-        if (foundEmployee != null) {
+        if(foundEmployee != null ) {
+            if (foundEmployee.isNewRole(role)) {
+                this.roles.get(foundEmployee.getRole()).removeEmployee(employee.getEmployeeId());
+            }
             foundEmployee.update(name, surname, localDate, role);
+        } else {
+            this.employees.put(employeeId, employee);
+        }
+
+        if (!this.roles.get(role).isEmployeeAlreadyInRole(employeeId)) {
+            this.roles.get(role).addEmployee(employee);
         }
     }
 
@@ -306,11 +306,13 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             room.update(name, description, roomtype);
         }
         this.rooms.put(roomId, new Room(roomId, name, description, roomtype));
+        this.roomsWithoutEmployees.insertBeginning(room);
     }
 
     @Override
     public void assignEmployee(String employeeId, String roomId) throws EmployeeAlreadyAssignedException, EmployeeNotFoundException, RoomNotFoundException {
         Employee employee = getEmployee(employeeId);
+
         if (employee == null) {
             throw new EmployeeNotFoundException();
         }
@@ -325,6 +327,24 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
         }
 
         room.addEmployee(employee);
+        employee.addRoom(room);
+
+        if (room.getAssignedEmployees().isEmpty()) {
+            deleteRoomWithoutEmployeesFromList(roomId);
+        }
+    }
+
+    private void deleteRoomWithoutEmployeesFromList(String roomId){
+        LinkedList<Room> newList = new LinkedList<>();
+        LinkedList<Room> aux = this.roomsWithoutEmployees;
+        while (!aux.isEmpty()) {
+            Room cur = aux.deleteFirst();
+            if (cur != null && !cur.getRoomId().equals(roomId)) {
+                newList.insertBeginning(cur);
+            }
+        }
+
+        this.roomsWithoutEmployees = newList;
     }
 
     @Override
@@ -343,7 +363,13 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public Iterator<Employee> getEmployeesByRole(String roleId) throws NOEmployeeException {
-        return null;
+        LinkedList<Employee> employees = getRole(roleId).getEmployees();
+
+        if (employees.isEmpty()) {
+            throw new NOEmployeeException();
+        }
+
+        return employees.values();
     }
 
     @Override
@@ -361,28 +387,37 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
     @Override
     public AssignEquipmentResponse assignEquipment(String equipmentId, String roomId) throws EquipmentNotFoundException, RoomNotFoundException, EquipmentAlreadyAssignedException {
         Equipment foundEquipment = getEquipment(equipmentId);
+        Room foundRoom = getRoom(roomId);
+        AssignEquipmentResponse response = AssignEquipmentResponse.ASSIGNED;
+
         if(foundEquipment == null) {
             throw new EquipmentNotFoundException();
         }
-
-        Room foundRoom = getRoom(roomId);
         if(foundRoom == null) {
             throw new RoomNotFoundException();
         }
-
         if (foundEquipment.isInRoom(roomId)) {
             throw new EquipmentAlreadyAssignedException();
         }
 
-        if (foundEquipment.isAssigned()) {
-            this.rooms.get(foundEquipment.getRoom().getRoomId());
-            foundEquipment.setRoom(foundRoom);
-            foundRoom.addEquipment(foundEquipment);
+        if (foundEquipment.getRoom() != null && !foundEquipment.isInRoom(roomId)) {
+            Room oldRoom = foundEquipment.getRoom();
+            this.getRoom(oldRoom.getRoomId()).removeEquipment(foundEquipment.getEquipmentId());
+            response = AssignEquipmentResponse.REASSIGNED;
         }
 
+        //if (!foundRoom.hasEquipment(foundEquipment.getEquipmentId())) {
+        //}
         foundRoom.addEquipment(foundEquipment);
+        foundEquipment.setRoom(foundRoom);
+        updateMostEquippedRooms(foundRoom);
 
-        return null;
+        return response;
+    }
+
+    private void updateMostEquippedRooms(Room room) {
+        mostEquippedRooms.delete(room);
+        mostEquippedRooms.update(room);
     }
 
     @Override
@@ -397,22 +432,46 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public Iterator<Enrollment> getWorkersByJobOffer(String jobOfferId) throws JobOfferNotFoundException, NoWorkerException {
-        return null;
+        JobOffer jobOffer = getJobOffer(jobOfferId);
+
+        if (jobOffer == null) {
+            throw new JobOfferNotFoundException();
+        }
+        if (!jobOffer.enrollments().hasNext()) {
+            throw new NoWorkerException();
+        }
+
+        return jobOffer.enrollments();
     }
 
     @Override
     public Iterator<Enrollment> getSubstitutesByJobOffer(String jobOfferId) throws JobOfferNotFoundException, NoWorkerException {
-        return null;
+        JobOffer jobOffer = getJobOffer(jobOfferId);
+
+        if (jobOffer == null) {
+            throw new JobOfferNotFoundException();
+        }
+        if (!jobOffer.substitutes().hasNext()) {
+            throw new NoWorkerException();
+        }
+
+        return jobOffer.substitutes();
     }
 
     @Override
     public Iterator<Room> getRoomsWithoutEmployees() throws NoRoomsException {
-        return null;
+        if (this.roomsWithoutEmployees.isEmpty()) {
+            throw new NoRoomsException();
+        }
+        return this.roomsWithoutEmployees.values();
     }
 
     @Override
     public Iterator<Room> best5EquippedRooms() throws NoRoomsException {
-        return null;
+        if (mostEquippedRooms.isEmpty()) {
+            throw new NoRoomsException();
+        }
+        return this.mostEquippedRooms.values();
     }
 
     @Override
@@ -467,7 +526,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public int numEquipmentsByRoom(String roomId) {
-        return 0;
+        return getRoom(roomId).getEquipments().size();
     }
 
     @Override
@@ -482,12 +541,12 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public int numRoomsByEmployee(String employee) {
-        return 0;
+        return getEmployee(employee).getRooms().size();
     }
 
     @Override
     public Room whereIs(String equipmentId) {
-        return null;
+        return getEquipment(equipmentId).getRoom();
     }
 
     @Override

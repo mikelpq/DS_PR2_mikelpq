@@ -5,6 +5,7 @@ import edu.uoc.ds.adt.sequential.List;
 import edu.uoc.ds.adt.sequential.Queue;
 import edu.uoc.ds.traversal.Iterator;
 import uoc.ds.pr.CTTCompaniesJobs;
+import uoc.ds.pr.util.PriorityQueueLinkedList;
 import uoc.ds.pr.util.QueueLinkedList;
 
 import java.time.LocalDate;
@@ -16,7 +17,7 @@ public class JobOffer implements Comparable<JobOffer>  {
     public static final Comparator<JobOffer> CMP_V = Comparator.comparingDouble(JobOffer::rating);
     public static final Comparator<JobOffer> CMP_J = Comparator.comparing(JobOffer::getJobOfferId);
 
-    private String jobOfferId;
+    private final String jobOfferId;
     private Request request;
     private Company company;
     private String description;
@@ -24,7 +25,6 @@ public class JobOffer implements Comparable<JobOffer>  {
     private int maxWorkers;
     private LocalDate startDate;
     private LocalDate endDate;
-
     private Queue<Enrollment> enrollments;
     private Queue<Enrollment> substitutes;
     private List<Rating> ratings;
@@ -42,7 +42,7 @@ public class JobOffer implements Comparable<JobOffer>  {
         this.endDate = endDate;
         this.request = request;
         this.enrollments = new QueueLinkedList<>();
-        this.substitutes = new QueueLinkedList<>();
+        this.substitutes = new PriorityQueueLinkedList<>(Enrollment.CMP_W_Q);
         this.ratings = new LinkedList<>();
     }
 
@@ -60,7 +60,7 @@ public class JobOffer implements Comparable<JobOffer>  {
 
     public void addRegistration(Worker worker, CTTCompaniesJobs.Response response) {
         Enrollment registration = new Enrollment(this, worker, response);
-        if (response== CTTCompaniesJobs.Response.SUBSTITUTE) {
+        if (response == CTTCompaniesJobs.Response.SUBSTITUTE) {
             substitutes.add(registration);
         }
         else {
@@ -69,7 +69,7 @@ public class JobOffer implements Comparable<JobOffer>  {
     }
 
     public double rating() {
-        return (this.ratings.size()>0?(sumRating / this.ratings.size()):0);
+        return (!this.ratings.isEmpty() ? (sumRating / this.ratings.size()) : 0);
     }
 
     @Override
@@ -120,7 +120,7 @@ public class JobOffer implements Comparable<JobOffer>  {
     }
 
     public double getTotalRating() {
-        return (this.ratings.size()!=0?this.sumRating/this.ratings.size():0);
+        return (!this.ratings.isEmpty() ?this.sumRating/this.ratings.size():0);
     }
 
     public long getWorkingDays() {
@@ -134,5 +134,4 @@ public class JobOffer implements Comparable<JobOffer>  {
     public Iterator<Enrollment> enrollments() {
         return enrollments.values();
     }
-
 }

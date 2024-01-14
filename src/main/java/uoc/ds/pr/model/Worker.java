@@ -20,7 +20,6 @@ public class Worker {
     private CTTCompaniesJobs.Qualification qualification;
     private List<JobOffer> jobOffers;
     private int workingDays;
-    private CTTCompaniesJobsPR2.Level level;
 
 
     public Worker(String id, String name, String surname,

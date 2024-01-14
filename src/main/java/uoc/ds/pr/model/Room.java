@@ -1,18 +1,19 @@
 package uoc.ds.pr.model;
 
 import edu.uoc.ds.adt.sequential.LinkedList;
+import edu.uoc.ds.traversal.Iterator;
 import uoc.ds.pr.CTTCompaniesJobsPR2;
 
 import java.util.Comparator;
 
 public class Room {
-    public static final Comparator<Room> CMP_R = Comparator.comparing(Room::getRoomId);
+    public static final Comparator<Room> CMP_R = Comparator.comparing(Room::numEquipments);;
     private String roomId;
     private String name;
     private String description;
     private CTTCompaniesJobsPR2.RoomType roomType;
     private LinkedList<Employee> assignedEmployees;
-    private LinkedList<Equipment> equipments;
+    private LinkedList<Equipment> equipments = new LinkedList<>();
 
     public Room(String roomId, String name, String description, CTTCompaniesJobsPR2.RoomType roomType) {
         this.roomId = roomId;
@@ -46,10 +47,6 @@ public class Room {
         this.description = description;
     }
 
-    public CTTCompaniesJobsPR2.RoomType getRoomType() {
-        return roomType;
-    }
-
     public void setRoomType(CTTCompaniesJobsPR2.RoomType roomType) {
         this.roomType = roomType;
     }
@@ -69,7 +66,7 @@ public class Room {
     public void update(String name, String description, CTTCompaniesJobsPR2.RoomType roomtype) {
         setName(name);
         setDescription(description);
-        setRoomType(roomType);
+        setRoomType(roomtype);
     }
 
     public void addEmployee(Employee employee) {
@@ -80,7 +77,33 @@ public class Room {
         this.equipments.insertEnd(equipment);
     }
 
-    public void removeEquipment (Equipment equipment) {
-        //this.equipments.
+    public void removeEquipment (String equipment) {
+        LinkedList<Equipment> newList = new LinkedList<>();
+        Iterator<Equipment> iterator = this.equipments.values();
+
+        while (iterator.hasNext()) {
+            Equipment cur = iterator.next();
+            boolean isSameEquipment = cur.getEquipmentId().equals(equipment);
+            if (!isSameEquipment) {
+                newList.insertEnd(cur);
+            }
+        }
+
+        this.equipments = newList;
+    }
+
+    public boolean hasEquipment(String equipment) {
+        boolean found = false;
+        Iterator<Equipment> iterator = this.equipments.values();
+
+        while (iterator.hasNext()) {
+            Equipment cur = iterator.next();
+            boolean isSameEquipment = cur.getEquipmentId().equals(equipment);
+            if (!isSameEquipment) {
+                found = true;
+                break;
+            }
+        }
+        return found;
     }
 }

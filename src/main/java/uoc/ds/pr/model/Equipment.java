@@ -56,8 +56,4 @@ public class Equipment {
     public boolean isInRoom(String roomId) {
         return this.room != null && this.room.getRoomId().equals(roomId);
     }
-
-    public boolean isAssigned(){
-        return this.room != null;
-    }
 }

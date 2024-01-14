@@ -86,4 +86,8 @@ public class Employee {
 
         return isAssigned;
     }
+
+    public boolean isNewRole(String role) {
+        return !role.equals(this.role);
+    }
 }
