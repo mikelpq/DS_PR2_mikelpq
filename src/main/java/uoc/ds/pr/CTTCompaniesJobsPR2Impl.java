@@ -24,7 +24,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
     private int rejectedRequests = 0;
     private Worker mostActiveWorker;
     private final OrderedVector<JobOffer> bestJobOffer = new OrderedVector<>(MAX_NUM_JOBOFFERS, JobOffer.CMP_V);
-    private final OrderedVector<Room> mostEquippedRooms = new OrderedVector<>(5, Room.CMP_R);
+    private final OrderedVector<Room> mostEquippedRooms = new OrderedVector<>(MAX_BEST5_EQUIPPEMENT, Room.CMP_R);
     private LinkedList<Room> roomsWithoutEmployees = new LinkedList<>();
 
     @Override

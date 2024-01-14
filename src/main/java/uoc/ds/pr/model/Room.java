@@ -6,7 +6,7 @@ import uoc.ds.pr.CTTCompaniesJobsPR2;
 
 import java.util.Comparator;
 
-public class Room {
+public class Room implements Comparable<Room>{
     public static final Comparator<Room> CMP_R = Comparator.comparing(Room::numEquipments);;
     private String roomId;
     private String name;
@@ -105,5 +105,10 @@ public class Room {
             }
         }
         return found;
+    }
+
+    @Override
+    public int compareTo(Room o) {
+        return this.roomId.compareTo(o.roomId);
     }
 }

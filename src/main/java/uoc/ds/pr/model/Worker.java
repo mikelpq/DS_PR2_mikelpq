@@ -10,6 +10,8 @@ import uoc.ds.pr.util.LevelHelper;
 import java.time.LocalDate;
 import java.util.Comparator;
 
+import static uoc.ds.pr.CTTCompaniesJobsPR2.HOURS_PER_DAY;
+
 public class Worker {
 
     public static final Comparator<Worker> CMP_W = Comparator.comparing(Worker::getId);
@@ -119,6 +121,6 @@ public class Worker {
     }
 
     public CTTCompaniesJobsPR2.Level getLevel() {
-        return LevelHelper.getLevel(this.workingDays * 8);
+        return LevelHelper.getLevel(this.workingDays * HOURS_PER_DAY);
     }
 }
