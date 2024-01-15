@@ -5,11 +5,10 @@ import edu.uoc.ds.adt.nonlinear.AVLTree;
 import edu.uoc.ds.adt.nonlinear.Dictionary;
 import edu.uoc.ds.adt.nonlinear.DictionaryAVLImpl;
 import edu.uoc.ds.adt.nonlinear.HashTable;
-import edu.uoc.ds.adt.nonlinear.graphs.DirectedGraph;
-import edu.uoc.ds.adt.nonlinear.graphs.DirectedGraphImpl;
-import edu.uoc.ds.adt.nonlinear.graphs.Vertex;
+import edu.uoc.ds.adt.nonlinear.graphs.*;
 import edu.uoc.ds.adt.sequential.LinkedList;
 import edu.uoc.ds.adt.sequential.Queue;
+import edu.uoc.ds.adt.sequential.SetLinkedListImpl;
 import edu.uoc.ds.traversal.Iterator;
 import uoc.ds.pr.exceptions.*;
 import uoc.ds.pr.model.*;
@@ -503,7 +502,10 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             throw new FollowedException();
         }
 
-        this.employeesNetworK.newEdge(followerVertex, followedVertex);
+        Edge<String, Employee> edgeFollower = this.employeesNetworK.newEdge(followerVertex, followedVertex);
+        edgeFollower.setLabel("follower");
+        Edge<String, Employee> edgeFollowed = this.employeesNetworK.newEdge(followedVertex, followerVertex);
+        edgeFollowed.setLabel("followed");
     }
 
     @Override
@@ -514,13 +516,22 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             throw new EmployeeNotFoundException();
         }
 
-        if (this.employeesNetworK.edges().hasNext()) {
+        if (!this.employeesNetworK.edges().hasNext()) {
             throw new NoFollowersException();
         }
 
-        Vertex<Employee> employeeVertex = this.employeesNetworK.getVertex(followed);
+        DirectedVertexImpl<Employee, String> employeeVertex = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(followed);
+        Iterator<Edge<String, Employee>> it = employeeVertex.edges();
+
+        LinkedList<Employee> employeeLinkedList = new LinkedList<>();
+
+        while (it.hasNext()) {
+            Employee cur = ((DirectedEdge<String, Employee>) it.next()).getVertexDst().getValue();
+            //employeeLinkedList.add(cur);
+            employeeLinkedList.insertBeginning(cur);
+        }
         
-        return null;
+        return employeeLinkedList.values();
     }
 
     @Override
@@ -570,9 +581,17 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public int numFollowers(String employeeId) {
-        Employee employee = getEmployee(employeeId);
-        Vertex<Employee> employeeVertex = this.employeesNetworK.getVertex(employee);
-        return countEdges(this.employeesNetworK.adjacencyList(employeeVertex));
+        int size = 0;
+        try {
+            Iterator<Employee> it = getFollowers(employeeId);
+            while (it.hasNext()) {
+                it.next();
+                size++;
+            }
+        } catch (DSException e) {
+            throw new RuntimeException(e);
+        }
+        return size;
     }
 
     private int countEdges(Iterator<Vertex<Employee>> vertexIterator) {
