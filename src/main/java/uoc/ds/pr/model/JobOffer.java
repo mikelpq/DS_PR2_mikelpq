@@ -1,11 +1,12 @@
 package uoc.ds.pr.model;
 
+import edu.uoc.ds.adt.helpers.KeyValue;
+import edu.uoc.ds.adt.nonlinear.PriorityQueue;
 import edu.uoc.ds.adt.sequential.LinkedList;
 import edu.uoc.ds.adt.sequential.List;
 import edu.uoc.ds.adt.sequential.Queue;
 import edu.uoc.ds.traversal.Iterator;
 import uoc.ds.pr.CTTCompaniesJobs;
-import uoc.ds.pr.util.PriorityQueueLinkedList;
 import uoc.ds.pr.util.QueueLinkedList;
 
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 public class JobOffer implements Comparable<JobOffer>  {
     public static final Comparator<JobOffer> CMP_V = Comparator.comparingDouble(JobOffer::rating);
     public static final Comparator<JobOffer> CMP_J = Comparator.comparing(JobOffer::getJobOfferId);
+    //public static final Comparator<KeyValue<String, JobOffer>> CMP_KV = Comparator.comparingDouble(JobOffer::rating);
 
     private final String jobOfferId;
     private Request request;
@@ -42,7 +44,7 @@ public class JobOffer implements Comparable<JobOffer>  {
         this.endDate = endDate;
         this.request = request;
         this.enrollments = new QueueLinkedList<>();
-        this.substitutes = new PriorityQueueLinkedList<>(Enrollment.CMP_W_Q);
+        this.substitutes = new PriorityQueue<>(Enrollment.CMP_W_Q);
         this.ratings = new LinkedList<>();
     }
 

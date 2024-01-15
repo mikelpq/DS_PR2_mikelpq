@@ -1,7 +1,13 @@
 package uoc.ds.pr;
 
+import edu.uoc.ds.adt.helpers.KeyValue;
 import edu.uoc.ds.adt.nonlinear.AVLTree;
+import edu.uoc.ds.adt.nonlinear.Dictionary;
+import edu.uoc.ds.adt.nonlinear.DictionaryAVLImpl;
 import edu.uoc.ds.adt.nonlinear.HashTable;
+import edu.uoc.ds.adt.nonlinear.graphs.DirectedGraph;
+import edu.uoc.ds.adt.nonlinear.graphs.DirectedGraphImpl;
+import edu.uoc.ds.adt.nonlinear.graphs.Vertex;
 import edu.uoc.ds.adt.sequential.LinkedList;
 import edu.uoc.ds.adt.sequential.Queue;
 import edu.uoc.ds.traversal.Iterator;
@@ -14,6 +20,7 @@ import java.time.LocalDate;
 public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
     private final AVLTree<Worker> workers = new AVLTree<>(Worker.CMP_W);
     private final AVLTree<JobOffer> jobOffers = new AVLTree<>(JobOffer.CMP_J);
+    //private final Dictionary<String,JobOffer> jobOffers = new DictionaryAVLImpl<>(JobOffer.CMP_KV);
     private final AVLTree<Equipment> equipments = new AVLTree<>(Equipment.CMP_E);
     private final DSArray<Role> roles = new DSArray<>(MAX_NUM_ROLES);
     private final HashTable<String, Room> rooms = new HashTable<>();
@@ -26,6 +33,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
     private final OrderedVector<JobOffer> bestJobOffer = new OrderedVector<>(MAX_NUM_JOBOFFERS, JobOffer.CMP_V);
     private final OrderedVector<Room> mostEquippedRooms = new OrderedVector<>(MAX_BEST5_EQUIPPEMENT, Room.CMP_R);
     private LinkedList<Room> roomsWithoutEmployees = new LinkedList<>();
+    private final DirectedGraph<Employee, String> employeesNetworK = new DirectedGraphImpl<>();
 
     @Override
     public void addWorker(String id, String name, String surname, LocalDate dateOfBirth, Qualification qualification) {
@@ -88,7 +96,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public Response signUpJobOffer(String workerId, String jobOfferId) throws JobOfferNotFoundException, WorkerNotFoundException, WorkerAlreadyEnrolledException {
-        Response response;
+        Response response = Response.REJECTED;
         Worker worker = getWorker(workerId);
         JobOffer jobOffer = getJobOffer(jobOfferId);
         if (worker == null) {
@@ -118,15 +126,12 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
                 jobOffer.addRegistration(worker, response);
             }
         }
-        else {
-            response = Response.REJECTED;
-        }
+
         return response;
     }
 
     private void updateMostActiveWorker(Worker worker) {
-        if ((this.mostActiveWorker==null) ||
-                (this.mostActiveWorker.getWorkingDays() < worker.getWorkingDays())) {
+        if (this.mostActiveWorker == null || this.mostActiveWorker.getWorkingDays() < worker.getWorkingDays()) {
             this.mostActiveWorker = worker;
         }
     }
@@ -291,6 +296,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             foundEmployee.update(name, surname, localDate, role);
         } else {
             this.employees.put(employeeId, employee);
+            this.employeesNetworK.newVertex(employee);
         }
 
         if (!this.roles.get(role).isEmployeeAlreadyInRole(employeeId)) {
@@ -406,8 +412,6 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             response = AssignEquipmentResponse.REASSIGNED;
         }
 
-        //if (!foundRoom.hasEquipment(foundEquipment.getEquipmentId())) {
-        //}
         foundRoom.addEquipment(foundEquipment);
         foundEquipment.setRoom(foundRoom);
         updateMostEquippedRooms(foundRoom);
@@ -460,10 +464,21 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public Iterator<Room> getRoomsWithoutEmployees() throws NoRoomsException {
-        if (this.roomsWithoutEmployees.isEmpty()) {
+        if (this.roomsWithoutEmployees.isEmpty() || this.rooms.isEmpty()) {
             throw new NoRoomsException();
         }
-        return this.roomsWithoutEmployees.values();
+
+        Iterator<Room> rooms = this.rooms.values();
+        LinkedList<Room> emptyRooms = new LinkedList<>();
+
+        while (rooms.hasNext()) {
+            Room cur = rooms.next();
+            if (cur.getAssignedEmployees().isEmpty()) {
+                emptyRooms.insertBeginning(cur);
+            }
+        }
+
+        return emptyRooms.values();
     }
 
     @Override
@@ -476,11 +491,35 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public void addFollower(String followerId, String followedId) throws FollowerNotFound, FollowedException {
+        Employee follower = getEmployee(followedId);
+        Vertex<Employee> followerVertex = this.employeesNetworK.getVertex(follower);
+        if (followerVertex == null) {
+            throw new FollowerNotFound();
+        }
 
+        Employee followed = getEmployee(followedId);
+        Vertex<Employee> followedVertex = this.employeesNetworK.getVertex(followed);
+        if (followedVertex == null) {
+            throw new FollowedException();
+        }
+
+        this.employeesNetworK.newEdge(followerVertex, followedVertex);
     }
 
     @Override
     public Iterator<Employee> getFollowers(String followedId) throws EmployeeNotFoundException, NoFollowersException, FollowerNotFound {
+        Employee followed = getEmployee(followedId);
+
+        if (followed == null) {
+            throw new EmployeeNotFoundException();
+        }
+
+        if (this.employeesNetworK.edges().hasNext()) {
+            throw new NoFollowersException();
+        }
+
+        Vertex<Employee> employeeVertex = this.employeesNetworK.getVertex(followed);
+        
         return null;
     }
 
@@ -531,7 +570,18 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public int numFollowers(String employeeId) {
-        return 0;
+        Employee employee = getEmployee(employeeId);
+        Vertex<Employee> employeeVertex = this.employeesNetworK.getVertex(employee);
+        return countEdges(this.employeesNetworK.adjacencyList(employeeVertex));
+    }
+
+    private int countEdges(Iterator<Vertex<Employee>> vertexIterator) {
+        int size = 0;
+        while (vertexIterator.hasNext()) {
+            size++;
+            vertexIterator.next();
+        }
+        return size;
     }
 
     @Override
