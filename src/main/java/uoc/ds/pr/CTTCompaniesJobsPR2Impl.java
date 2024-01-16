@@ -490,17 +490,19 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public void addFollower(String followerId, String followedId) throws FollowerNotFound, FollowedException {
-        Employee follower = getEmployee(followedId);
-        Vertex<Employee> followerVertex = this.employeesNetworK.getVertex(follower);
-        if (followerVertex == null) {
+        Employee follower = getEmployee(followerId);
+        if (follower == null) {
             throw new FollowerNotFound();
         }
 
         Employee followed = getEmployee(followedId);
-        Vertex<Employee> followedVertex = this.employeesNetworK.getVertex(followed);
-        if (followedVertex == null) {
+
+        if (followed == null) {
             throw new FollowedException();
         }
+
+        DirectedVertexImpl<Employee, String> followerVertex = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(follower);
+        Vertex<Employee> followedVertex = this.employeesNetworK.getVertex(followed);
 
         Edge<String, Employee> edgeFollower = this.employeesNetworK.newEdge(followerVertex, followedVertex);
         edgeFollower.setLabel("follower");
@@ -526,9 +528,11 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
         LinkedList<Employee> employeeLinkedList = new LinkedList<>();
 
         while (it.hasNext()) {
-            Employee cur = ((DirectedEdge<String, Employee>) it.next()).getVertexDst().getValue();
-            //employeeLinkedList.add(cur);
-            employeeLinkedList.insertBeginning(cur);
+            DirectedEdge<String, Employee> cur = (DirectedEdge<String, Employee>) it.next();
+            if (cur.getVertexSrc().getValue().getEmployeeId().equals(followedId) && cur.getLabel().equals("followed")) {
+                Employee follower = cur.getVertexDst().getValue();
+                employeeLinkedList.insertBeginning(follower);
+            }
         }
         
         return employeeLinkedList.values();
@@ -536,7 +540,31 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public Iterator<Employee> getFollowings(String followerId) throws EmployeeNotFoundException, NoFollowedException {
-        return null;
+        Employee follower = getEmployee(followerId);
+
+        if (follower == null) {
+            throw new EmployeeNotFoundException();
+        }
+
+        DirectedVertexImpl<Employee, String> vertexFollower = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(follower);
+
+        if (!vertexFollower.edges().hasNext()) {
+            throw new NoFollowedException();
+        }
+
+        Iterator<Edge<String, Employee>> it = vertexFollower.edges();
+
+        LinkedList<Employee> employeeLinkedList = new LinkedList<>();
+
+        while (it.hasNext()) {
+            DirectedEdge<String, Employee> cur = (DirectedEdge<String, Employee>) it.next();
+            if (cur.getVertexDst().getValue().getEmployeeId().equals(followerId) && cur.getLabel().equals("followed")) {
+                Employee curFollowed = cur.getVertexDst().getValue();
+                employeeLinkedList.insertBeginning(curFollowed);
+            }
+        }
+
+        return employeeLinkedList.values();
     }
 
     @Override
@@ -605,7 +633,17 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public int numFollowings(String employeeId) {
-        return 0;
+        int size = 0;
+        try {
+            Iterator<Employee> it = getFollowings(employeeId);
+            while (it.hasNext()) {
+                it.next();
+                size++;
+            }
+        } catch (DSException e) {
+            throw new RuntimeException(e);
+        }
+        return size;
     }
 
     @Override
