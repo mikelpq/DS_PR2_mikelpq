@@ -604,31 +604,25 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             throw new EmployeeNotFoundException();
         }
         LinkedList<Employee> suggestionsList = new LinkedList<>();
+        Iterator<Employee> allEmployees = this.employees.values();
 
-        Iterator<Employee> curFollowing = null;
         try {
-            curFollowing = getFollowings(employeeId);
-            boolean found;
 
-            while (curFollowing.hasNext()) {
-                Employee cur = curFollowing.next();
-                found = false;
+            boolean isAlreadyFollowed;
 
-                Iterator<Employee> suggestions = getFollowings(cur.getEmployeeId());
-
-                if (suggestions != null && suggestions.hasNext()) {
-                    while (suggestions.hasNext()) {
-                        Employee curEmployee = suggestions.next();
-
-                        if (curEmployee.getEmployeeId().equals(cur.getEmployeeId())) {
-                            found = true;
-                            break;
-                        }
+            while (allEmployees.hasNext()) {
+                Employee cur = allEmployees.next();
+                isAlreadyFollowed = false;
+                Iterator<Employee> curFollowing = getFollowings(employeeId);
+                //if (curFollowing.hasNext()) {
+                    while (curFollowing.hasNext() && !isAlreadyFollowed) {
+                        String followedId = curFollowing.next().getEmployeeId();
+                        isAlreadyFollowed = followedId.equals(cur.getEmployeeId());
                     }
-                }
+                //}
 
-                if (found) {
-                    suggestionsList.insertBeginning(cur);
+                if (!isAlreadyFollowed) {
+                    suggestionsList.insertEnd(cur);
                 }
             }
         } catch (DSException e) {
