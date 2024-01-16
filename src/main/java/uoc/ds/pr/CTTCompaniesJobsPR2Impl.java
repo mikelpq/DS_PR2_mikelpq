@@ -1,9 +1,6 @@
 package uoc.ds.pr;
 
-import edu.uoc.ds.adt.helpers.KeyValue;
 import edu.uoc.ds.adt.nonlinear.AVLTree;
-import edu.uoc.ds.adt.nonlinear.Dictionary;
-import edu.uoc.ds.adt.nonlinear.DictionaryAVLImpl;
 import edu.uoc.ds.adt.nonlinear.HashTable;
 import edu.uoc.ds.adt.nonlinear.graphs.*;
 import edu.uoc.ds.adt.sequential.LinkedList;
@@ -518,24 +515,26 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             throw new EmployeeNotFoundException();
         }
 
-        if (!this.employeesNetworK.edges().hasNext()) {
+        DirectedVertexImpl<Employee, String> employeeVertex = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(followed);
+        LinkedList<Employee> employeeLinkedList = getList("followed", followedId, employeeVertex.edges());
+
+        if (employeeLinkedList.isEmpty()) {
             throw new NoFollowersException();
         }
 
-        DirectedVertexImpl<Employee, String> employeeVertex = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(followed);
-        Iterator<Edge<String, Employee>> it = employeeVertex.edges();
+        return employeeLinkedList.values();
+    }
 
-        LinkedList<Employee> employeeLinkedList = new LinkedList<>();
-
+    private LinkedList<Employee> getList(String lookUp, String id, Iterator<Edge<String, Employee>> it) {
+        LinkedList<Employee> list = new LinkedList<>();
         while (it.hasNext()) {
             DirectedEdge<String, Employee> cur = (DirectedEdge<String, Employee>) it.next();
-            if (cur.getVertexSrc().getValue().getEmployeeId().equals(followedId) && cur.getLabel().equals("followed")) {
+            if (cur.getVertexSrc().getValue().getEmployeeId().equals(id) && cur.getLabel().equals(lookUp)) {
                 Employee follower = cur.getVertexDst().getValue();
-                employeeLinkedList.insertBeginning(follower);
+                list.insertEnd(follower);
             }
         }
-        
-        return employeeLinkedList.values();
+        return list;
     }
 
     @Override
@@ -547,20 +546,19 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
         }
 
         DirectedVertexImpl<Employee, String> vertexFollower = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(follower);
+        Iterator<Edge<String, Employee>> it = vertexFollower.edges();
 
-        if (!vertexFollower.edges().hasNext()) {
+        if (!it.hasNext()) {
             throw new NoFollowedException();
         }
-
-        Iterator<Edge<String, Employee>> it = vertexFollower.edges();
 
         LinkedList<Employee> employeeLinkedList = new LinkedList<>();
 
         while (it.hasNext()) {
             DirectedEdge<String, Employee> cur = (DirectedEdge<String, Employee>) it.next();
             if (cur.getVertexDst().getValue().getEmployeeId().equals(followerId) && cur.getLabel().equals("followed")) {
-                Employee curFollowed = cur.getVertexDst().getValue();
-                employeeLinkedList.insertBeginning(curFollowed);
+                Employee curFollowed = cur.getVertexSrc().getValue();
+                employeeLinkedList.insertEnd(curFollowed);
             }
         }
 
@@ -569,12 +567,79 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public Iterator<Employee> recommendations(String followerId) throws EmployeeNotFoundException, NoFollowedException {
-        return null;
+        Employee follower = getEmployee(followerId);
+
+        if (follower == null) {
+            throw new EmployeeNotFoundException();
+        }
+
+        LinkedList<Employee> suggestionsList = new LinkedList<>();
+        Iterator<Employee> curFollowing = getFollowings(followerId);
+
+        if (!curFollowing.hasNext()) {
+            throw new NoFollowedException();
+        }
+
+        while (curFollowing.hasNext()) {
+            Employee cur = curFollowing.next();
+
+            Iterator<Employee> suggestions = getFollowings(cur.getEmployeeId());
+
+            if (suggestions != null && suggestions.hasNext()) {
+                while (suggestions.hasNext()) {
+                    Employee curEmployee = suggestions.next();
+                    suggestionsList.insertEnd(curEmployee);
+                }
+            }
+        }
+
+        return suggestionsList.values();
     }
 
     @Override
     public Iterator<Employee> getUnfollowedColleagues(String employeeId) throws EmployeeNotFoundException, NOEmployeeException {
-        return null;
+        Employee employee = getEmployee(employeeId);
+
+        if (employee == null) {
+            throw new EmployeeNotFoundException();
+        }
+        LinkedList<Employee> suggestionsList = new LinkedList<>();
+
+        Iterator<Employee> curFollowing = null;
+        try {
+            curFollowing = getFollowings(employeeId);
+            boolean found;
+
+            while (curFollowing.hasNext()) {
+                Employee cur = curFollowing.next();
+                found = false;
+
+                Iterator<Employee> suggestions = getFollowings(cur.getEmployeeId());
+
+                if (suggestions != null && suggestions.hasNext()) {
+                    while (suggestions.hasNext()) {
+                        Employee curEmployee = suggestions.next();
+
+                        if (curEmployee.getEmployeeId().equals(cur.getEmployeeId())) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (found) {
+                    suggestionsList.insertBeginning(cur);
+                }
+            }
+        } catch (DSException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (suggestionsList.isEmpty()) {
+            throw new NOEmployeeException();
+        }
+
+        return suggestionsList.values();
     }
 
     @Override
