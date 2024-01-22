@@ -472,8 +472,8 @@ public class CTTCCompaniesJobsPR2Test extends CTTCompaniesJobsPR1Test {
 
         it1.hasNext();
         enrollment= it1.next();
-        //Assert.assertEquals("workerId14",enrollment.getWorker().getId());
-        //Assert.assertEquals(CTTCompaniesJobsPR2.Level.INTERN, enrollment.getWorker().getLevel());
+        Assert.assertEquals("workerId14",enrollment.getWorker().getId());
+        Assert.assertEquals(CTTCompaniesJobsPR2.Level.INTERN, enrollment.getWorker().getLevel());
 
         it1.hasNext();
         enrollment= it1.next();

@@ -1,6 +1,9 @@
 package uoc.ds.pr;
 
+import edu.uoc.ds.adt.helpers.KeyValue;
 import edu.uoc.ds.adt.nonlinear.AVLTree;
+import edu.uoc.ds.adt.nonlinear.Dictionary;
+import edu.uoc.ds.adt.nonlinear.DictionaryAVLImpl;
 import edu.uoc.ds.adt.nonlinear.HashTable;
 import edu.uoc.ds.adt.nonlinear.graphs.*;
 import edu.uoc.ds.adt.sequential.LinkedList;
@@ -12,11 +15,13 @@ import uoc.ds.pr.model.*;
 import uoc.ds.pr.util.*;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 
 public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
+    //private final Comparator<KeyValue<String, JobOffer>> comparatorJobOffer = Comparator.comparing(JobOffer::getJobOfferId);
     private final AVLTree<Worker> workers = new AVLTree<>(Worker.CMP_W);
-    private final AVLTree<JobOffer> jobOffers = new AVLTree<>(JobOffer.CMP_J);
-    //private final Dictionary<String,JobOffer> jobOffers = new DictionaryAVLImpl<>(JobOffer.CMP_KV);
+    //private final AVLTree<JobOffer> jobOffers = new AVLTree<>(JobOffer.CMP_J);
+    private final Dictionary<String,JobOffer> jobOffers = new DictionaryAVLImpl<>();
     private final AVLTree<Equipment> equipments = new AVLTree<>(Equipment.CMP_E);
     private final DSArray<Role> roles = new DSArray<>(MAX_NUM_ROLES);
     private final HashTable<String, Room> rooms = new HashTable<>();
@@ -29,7 +34,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
     private final OrderedVector<JobOffer> bestJobOffer = new OrderedVector<>(MAX_NUM_JOBOFFERS, JobOffer.CMP_V);
     private final OrderedVector<Room> mostEquippedRooms = new OrderedVector<>(MAX_BEST5_EQUIPPEMENT, Room.CMP_R);
     private LinkedList<Room> roomsWithoutEmployees = new LinkedList<>();
-    private final DirectedGraph<Employee, String> employeesNetworK = new DirectedGraphImpl<>();
+    private final DirectedGraph<Employee, String> employeesNetwork = new DirectedGraphImpl<>();
 
     @Override
     public void addWorker(String id, String name, String surname, LocalDate dateOfBirth, Qualification qualification) {
@@ -79,7 +84,8 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
         if (request.isEnabled()) {
             JobOffer jobOffer = request.getJobOffer();
 
-            this.jobOffers.add(jobOffer);
+            //this.jobOffers.add(jobOffer);
+            this.jobOffers.put(jobOffer.getJobOfferId(), jobOffer);
             Company company = jobOffer.getCompany();
             company.addJobOffer(jobOffer);
 
@@ -236,7 +242,8 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public JobOffer getJobOffer(String jobOfferId) {
-        return this.jobOffers.get(new JobOffer(jobOfferId));
+        //return this.jobOffers.get(new JobOffer(jobOfferId));
+        return this.jobOffers.get(jobOfferId);
     }
 
     @Override
@@ -292,7 +299,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             foundEmployee.update(name, surname, localDate, role);
         } else {
             this.employees.put(employeeId, employee);
-            this.employeesNetworK.newVertex(employee);
+            this.employeesNetwork.newVertex(employee);
         }
 
         if (!this.roles.get(role).isEmployeeAlreadyInRole(employeeId)) {
@@ -498,12 +505,12 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             throw new FollowedException();
         }
 
-        DirectedVertexImpl<Employee, String> followerVertex = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(follower);
-        Vertex<Employee> followedVertex = this.employeesNetworK.getVertex(followed);
+        DirectedVertexImpl<Employee, String> followerVertex = (DirectedVertexImpl<Employee, String>) this.employeesNetwork.getVertex(follower);
+        Vertex<Employee> followedVertex = this.employeesNetwork.getVertex(followed);
 
-        Edge<String, Employee> edgeFollower = this.employeesNetworK.newEdge(followerVertex, followedVertex);
+        Edge<String, Employee> edgeFollower = this.employeesNetwork.newEdge(followerVertex, followedVertex);
         edgeFollower.setLabel("follower");
-        Edge<String, Employee> edgeFollowed = this.employeesNetworK.newEdge(followedVertex, followerVertex);
+        Edge<String, Employee> edgeFollowed = this.employeesNetwork.newEdge(followedVertex, followerVertex);
         edgeFollowed.setLabel("followed");
     }
 
@@ -515,7 +522,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             throw new EmployeeNotFoundException();
         }
 
-        DirectedVertexImpl<Employee, String> employeeVertex = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(followed);
+        DirectedVertexImpl<Employee, String> employeeVertex = (DirectedVertexImpl<Employee, String>) this.employeesNetwork.getVertex(followed);
         LinkedList<Employee> employeeLinkedList = getList("followed", followedId, employeeVertex.edges());
 
         if (employeeLinkedList.isEmpty()) {
@@ -545,7 +552,7 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             throw new EmployeeNotFoundException();
         }
 
-        DirectedVertexImpl<Employee, String> vertexFollower = (DirectedVertexImpl<Employee, String>) this.employeesNetworK.getVertex(follower);
+        DirectedVertexImpl<Employee, String> vertexFollower = (DirectedVertexImpl<Employee, String>) this.employeesNetwork.getVertex(follower);
         Iterator<Edge<String, Employee>> it = vertexFollower.edges();
 
         if (!it.hasNext()) {
@@ -567,23 +574,24 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public Iterator<Employee> recommendations(String followerId) throws EmployeeNotFoundException, NoFollowedException {
-        Employee follower = getEmployee(followerId);
+        final Employee follower = getEmployee(followerId);
 
         if (follower == null) {
             throw new EmployeeNotFoundException();
         }
 
-        LinkedList<Employee> suggestionsList = new LinkedList<>();
-        Iterator<Employee> curFollowing = getFollowings(followerId);
+        final Iterator<Employee> curFollowing = getFollowings(followerId);
 
         if (!curFollowing.hasNext()) {
             throw new NoFollowedException();
         }
 
-        while (curFollowing.hasNext()) {
-            Employee cur = curFollowing.next();
+        final LinkedList<Employee> suggestionsList = new LinkedList<>();
 
-            Iterator<Employee> suggestions = getFollowings(cur.getEmployeeId());
+        while (curFollowing.hasNext()) {
+            final Employee cur = curFollowing.next();
+
+            final Iterator<Employee> suggestions = getFollowings(cur.getEmployeeId());
 
             if (suggestions != null && suggestions.hasNext()) {
                 while (suggestions.hasNext()) {
@@ -598,43 +606,56 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public Iterator<Employee> getUnfollowedColleagues(String employeeId) throws EmployeeNotFoundException, NOEmployeeException {
-        Employee employee = getEmployee(employeeId);
+        final Employee employee = getEmployee(employeeId);
 
         if (employee == null) {
             throw new EmployeeNotFoundException();
         }
-        LinkedList<Employee> suggestionsList = new LinkedList<>();
-        Iterator<Employee> allEmployees = this.employees.values();
 
-        try {
+        final Iterator<Room> userRooms = employee.getRooms().values();
+        final SetLinkedListImpl<Employee> coworkers = new SetLinkedListImpl<>();
 
-            boolean isAlreadyFollowed;
-
-            while (allEmployees.hasNext()) {
-                Employee cur = allEmployees.next();
-                isAlreadyFollowed = false;
-                Iterator<Employee> curFollowing = getFollowings(employeeId);
-                //if (curFollowing.hasNext()) {
-                    while (curFollowing.hasNext() && !isAlreadyFollowed) {
-                        String followedId = curFollowing.next().getEmployeeId();
-                        isAlreadyFollowed = followedId.equals(cur.getEmployeeId());
-                    }
-                //}
-
-                if (!isAlreadyFollowed) {
-                    suggestionsList.insertEnd(cur);
+        while (userRooms.hasNext()) {
+            final Iterator<Employee> employeesInRoom = userRooms.next().getAssignedEmployees().values();
+            while (employeesInRoom.hasNext()) {
+                Employee cur = employeesInRoom.next();
+                if (!cur.getEmployeeId().equals(employeeId)) {
+                    coworkers.add(cur);
                 }
             }
+        }
+
+        final LinkedList<Employee> suggestionsList = new LinkedList<>();
+        Iterator<Employee> coworkersIterator = coworkers.values();
+
+        while (coworkersIterator.hasNext()) {
+            Employee current = coworkersIterator.next();
+            if (!isFollowed(employeeId, current.getEmployeeId())) {
+                suggestionsList.insertEnd(current);
+            }
+        }
+
+        if (suggestionsList.isEmpty()) { throw new NOEmployeeException(); }
+
+        return suggestionsList.values();
+    }
+
+    private boolean isFollowed(String employeeId, String lookUpId) {
+        Iterator<Employee> followings;
+        try {
+            followings = getFollowings(employeeId);
         } catch (DSException e) {
             throw new RuntimeException(e);
         }
 
-        if (suggestionsList.isEmpty()) {
-            throw new NOEmployeeException();
+        while (followings.hasNext()) {
+            if (followings.next().getEmployeeId().equals(lookUpId)) {
+                return true;
+            }
         }
-
-        return suggestionsList.values();
+        return false;
     }
+
 
     @Override
     public int numRoles() {
@@ -677,15 +698,6 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
             }
         } catch (DSException e) {
             throw new RuntimeException(e);
-        }
-        return size;
-    }
-
-    private int countEdges(Iterator<Vertex<Employee>> vertexIterator) {
-        int size = 0;
-        while (vertexIterator.hasNext()) {
-            size++;
-            vertexIterator.next();
         }
         return size;
     }

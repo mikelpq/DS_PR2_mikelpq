@@ -166,24 +166,30 @@ public class CTTCCompaniesJobsPR2PlusTest extends CTTCCompaniesJobsPR2Test {
         Assert.assertThrows(EmployeeNotFoundException.class, () ->
                 cttCompaniesJobs.getUnfollowedColleagues("Pepito"));
 
-        Iterator<Employee> it = cttCompaniesJobs.getUnfollowedColleagues("3811123A");
+        Iterator<Employee> it1 = cttCompaniesJobs.getFollowings("3811123A");
+        Assert.assertEquals("439452145T", it1.next().getEmployeeId());
+        Assert.assertFalse(it1.hasNext());
 
+
+        Iterator<Employee> it = cttCompaniesJobs.getUnfollowedColleagues("3811123A");
         Employee employee1 = it.next();
-        Assert.assertEquals("67122145A", employee1.getEmployeeId());
+        Assert.assertEquals("12122145A", employee1.getEmployeeId());
 
         Employee employee2 = it.next();
-        Assert.assertEquals("89333214B", employee2.getEmployeeId());
+        Assert.assertEquals("67122145A", employee2.getEmployeeId());
 
 
         Employee employee3 = it.next();
-        Assert.assertEquals("76239045G", employee3.getEmployeeId());
+        Assert.assertEquals("89333214B", employee3.getEmployeeId());
 
         Employee employee4= it.next();
-        Assert.assertEquals("67322245Z", employee4.getEmployeeId());
+        Assert.assertEquals("76239045G", employee4.getEmployeeId());
 
         Employee employee5= it.next();
-        Assert.assertEquals("12365232F", employee5.getEmployeeId());
+        Assert.assertEquals("67322245Z", employee5.getEmployeeId());
 
+        Employee employee6= it.next();
+        Assert.assertEquals("12365232F", employee6.getEmployeeId());
         Assert.assertFalse(it.hasNext());
 
     }

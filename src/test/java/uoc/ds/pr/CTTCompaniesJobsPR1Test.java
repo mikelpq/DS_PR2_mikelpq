@@ -183,7 +183,7 @@ public class CTTCompaniesJobsPR1Test {
         Assert.assertEquals(1, jobOfferIA1.getNumWorkers());
 
         Assert.assertThrows(WorkerAlreadyEnrolledException.class, () ->
-                cttCompaniesJobs.signUpJobOffer("workerId1", "jobOfferIdA1"));
+            cttCompaniesJobs.signUpJobOffer("workerId1", "jobOfferIdA1"));
 
         Worker workerId2 = cttCompaniesJobs.getWorker("workerId2");
         Assert.assertEquals(CTTCompaniesJobs.Qualification.UNIVERSITY, workerId2.getQualification());
@@ -228,7 +228,7 @@ public class CTTCompaniesJobsPR1Test {
         Assert.assertEquals(1, jobOfferIA1.getNumSubstitutes());
 
         Assert.assertThrows(WorkerAlreadyEnrolledException.class, () ->
-                cttCompaniesJobs.signUpJobOffer("workerId9", "jobOfferIdA1"));
+                 cttCompaniesJobs.signUpJobOffer("workerId9", "jobOfferIdA1"));
 
         CTTCompaniesJobs.Response response11 = cttCompaniesJobs.signUpJobOffer("workerId10", "jobOfferIdA1");
         Assert.assertEquals(CTTCompaniesJobs.Response.SUBSTITUTE, response11);
