@@ -87,7 +87,7 @@ public class Worker {
     }
 
     public void addJobOffer(JobOffer jobOffer) {
-        this.workingDays += jobOffer.getWorkingDays();
+        this.workingDays += (int) jobOffer.getWorkingDays();
         this.jobOffers.insertEnd(jobOffer);
     }
 
@@ -108,7 +108,7 @@ public class Worker {
     public boolean isInJobOffer(Iterator<Enrollment> it){
         boolean found = false;
 
-        Enrollment enrollment = null;
+        Enrollment enrollment;
         while (!found && it.hasNext()){
             enrollment = it.next();
             found = enrollment.getWorker().getId().equals(this.id);

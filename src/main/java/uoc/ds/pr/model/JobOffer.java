@@ -1,6 +1,5 @@
 package uoc.ds.pr.model;
 
-import edu.uoc.ds.adt.helpers.KeyValue;
 import edu.uoc.ds.adt.nonlinear.PriorityQueue;
 import edu.uoc.ds.adt.sequential.LinkedList;
 import edu.uoc.ds.adt.sequential.List;
@@ -16,20 +15,17 @@ import static java.time.temporal.ChronoUnit.DAYS;
 
 public class JobOffer implements Comparable<JobOffer>  {
     public static final Comparator<JobOffer> CMP_V = Comparator.comparingDouble(JobOffer::rating);
-    public static final Comparator<JobOffer> CMP_J = Comparator.comparing(JobOffer::getJobOfferId);
-    //public static final Comparator<KeyValue<String, JobOffer>> CMP_KV = Comparator.comparingDouble(JobOffer::rating);
-
     private final String jobOfferId;
-    private Request request;
-    private Company company;
-    private String description;
-    private CTTCompaniesJobs.Qualification minQualification;
-    private int maxWorkers;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private Queue<Enrollment> enrollments;
-    private Queue<Enrollment> substitutes;
-    private List<Rating> ratings;
+    private final Request request;
+    private final Company company;
+    private final String description;
+    private final CTTCompaniesJobs.Qualification minQualification;
+    private final int maxWorkers;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
+    private final Queue<Enrollment> enrollments;
+    private final Queue<Enrollment> substitutes;
+    private final List<Rating> ratings;
     private double sumRating;
 
     public JobOffer(String jobOfferId, Request request, Company company, String description,
@@ -46,10 +42,6 @@ public class JobOffer implements Comparable<JobOffer>  {
         this.enrollments = new QueueLinkedList<>();
         this.substitutes = new PriorityQueue<>(Enrollment.CMP_W_Q);
         this.ratings = new LinkedList<>();
-    }
-
-    public JobOffer(String jobOfferId) {
-        this.jobOfferId = jobOfferId;
     }
 
     public String getJobOfferId() {

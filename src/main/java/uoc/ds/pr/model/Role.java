@@ -14,10 +14,6 @@ public class Role {
         this.employees = new LinkedList<>();
     }
 
-    public String getRoleId() {
-        return roleId;
-    }
-
     public String getDescription() {
         return description;
     }

@@ -1,10 +1,10 @@
 package uoc.ds.pr.model;
 
 public class Rating {
-    private JobOffer jobOffer;
-    private int value;
-    private String message;
-    private Worker worker;
+    private final JobOffer jobOffer;
+    private final int value;
+    private final String message;
+    private final Worker worker;
 
     public Rating(JobOffer jobOffer, int value, String message, Worker worker) {
         this.jobOffer = jobOffer;

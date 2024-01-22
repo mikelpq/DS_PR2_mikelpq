@@ -1,6 +1,5 @@
 package uoc.ds.pr;
 
-import edu.uoc.ds.adt.helpers.KeyValue;
 import edu.uoc.ds.adt.nonlinear.AVLTree;
 import edu.uoc.ds.adt.nonlinear.Dictionary;
 import edu.uoc.ds.adt.nonlinear.DictionaryAVLImpl;
@@ -15,12 +14,9 @@ import uoc.ds.pr.model.*;
 import uoc.ds.pr.util.*;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 
 public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
-    //private final Comparator<KeyValue<String, JobOffer>> comparatorJobOffer = Comparator.comparing(JobOffer::getJobOfferId);
     private final AVLTree<Worker> workers = new AVLTree<>(Worker.CMP_W);
-    //private final AVLTree<JobOffer> jobOffers = new AVLTree<>(JobOffer.CMP_J);
     private final Dictionary<String,JobOffer> jobOffers = new DictionaryAVLImpl<>();
     private final AVLTree<Equipment> equipments = new AVLTree<>(Equipment.CMP_E);
     private final DSArray<Role> roles = new DSArray<>(MAX_NUM_ROLES);
@@ -242,7 +238,6 @@ public class CTTCompaniesJobsPR2Impl implements CTTCompaniesJobsPR2 {
 
     @Override
     public JobOffer getJobOffer(String jobOfferId) {
-        //return this.jobOffers.get(new JobOffer(jobOfferId));
         return this.jobOffers.get(jobOfferId);
     }
 

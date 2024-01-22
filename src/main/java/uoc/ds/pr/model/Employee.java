@@ -42,10 +42,6 @@ public class Employee {
         this.surname = surname;
     }
 
-    public LocalDate getDateOfBirth() {
-        return dateOfBirth;
-    }
-
     public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }

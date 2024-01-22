@@ -8,7 +8,7 @@ public class Company {
     private String id;
     private String name;
     private String description;
-    private List<JobOffer> jobOffers;
+    private final List<JobOffer> jobOffers;
 
     public Company(String id, String name, String description) {
         this.setId(id);

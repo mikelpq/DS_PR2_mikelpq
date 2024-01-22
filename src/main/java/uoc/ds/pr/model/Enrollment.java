@@ -7,9 +7,9 @@ import java.util.Comparator;
 public class Enrollment {
 
     public static final Comparator<Enrollment> CMP_W_Q = Comparator.comparing(Enrollment::getWorkerWorkingDays);
-    private Worker worker;
-    private JobOffer jobOffer;
-    private CTTCompaniesJobs.Response response;
+    private final Worker worker;
+    private final JobOffer jobOffer;
+    private final CTTCompaniesJobs.Response response;
 
     public Enrollment(JobOffer jobOffer, Worker worker, CTTCompaniesJobs.Response response) {
         this.jobOffer = jobOffer;

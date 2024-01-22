@@ -6,14 +6,14 @@ import java.time.LocalDate;
 
 public class Request {
 
-    private String requestId;
-    private String jobOfferId;
-    private Company company;
-    private String description;
-    private CTTCompaniesJobs.Qualification minQualification;
-    private int maxWorkers;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private final String requestId;
+    private final String jobOfferId;
+    private final Company company;
+    private final String description;
+    private final CTTCompaniesJobs.Qualification minQualification;
+    private final int maxWorkers;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
     private CTTCompaniesJobs.Status status;
     private String descriptionStatus;
     private LocalDate dateStatus;

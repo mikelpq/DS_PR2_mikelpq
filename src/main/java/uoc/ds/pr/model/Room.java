@@ -7,12 +7,12 @@ import uoc.ds.pr.CTTCompaniesJobsPR2;
 import java.util.Comparator;
 
 public class Room implements Comparable<Room>{
-    public static final Comparator<Room> CMP_R = Comparator.comparing(Room::numEquipments);;
+    public static final Comparator<Room> CMP_R = Comparator.comparing(Room::numEquipments);
     private String roomId;
     private String name;
     private String description;
     private CTTCompaniesJobsPR2.RoomType roomType;
-    private LinkedList<Employee> assignedEmployees;
+    private final LinkedList<Employee> assignedEmployees;
     private LinkedList<Equipment> equipments = new LinkedList<>();
 
     public Room(String roomId, String name, String description, CTTCompaniesJobsPR2.RoomType roomType) {
@@ -90,21 +90,6 @@ public class Room implements Comparable<Room>{
         }
 
         this.equipments = newList;
-    }
-
-    public boolean hasEquipment(String equipment) {
-        boolean found = false;
-        Iterator<Equipment> iterator = this.equipments.values();
-
-        while (iterator.hasNext()) {
-            Equipment cur = iterator.next();
-            boolean isSameEquipment = cur.getEquipmentId().equals(equipment);
-            if (!isSameEquipment) {
-                found = true;
-                break;
-            }
-        }
-        return found;
     }
 
     @Override
